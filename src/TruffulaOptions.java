@@ -102,9 +102,42 @@ public class TruffulaOptions  {
    */
   public TruffulaOptions(String[] args) throws IllegalArgumentException, FileNotFoundException {
     // TODO: Replace the below lines with your implementation
-    root = null;
-    showHidden = false;
-    useColor = false;
+  
+    if (args == null || args.length == 0) {
+      throw new IllegalArgumentException("Path is missing.");
+    }
+
+    boolean showHidden = false;
+    boolean useColor = true;
+
+    for (int i = 0; i < args.length; i++) {
+      if (i != args.length - 1 && !args[i].equals("-h") && !args[i].equals("-nc")) {
+        throw new IllegalArgumentException("Command argument not recognized:" + args[i]);
+      }
+
+      if (args[i].equals("-h")) {
+        showHidden = true;
+      }
+      
+      if (args[i].equals("-nc")) {
+        useColor = false;
+      }
+    }
+
+    String path = args[args.length - 1];
+    if (path.equals("-h") || path.equals("-nc")) {
+        throw new IllegalArgumentException("No path provided.");
+    }
+
+    File dir = new File(path);
+    if (!dir.exists() || !dir.isDirectory()) {
+        throw new FileNotFoundException("Directory not found.");
+    }
+
+    this.root = dir;
+    this.showHidden = showHidden;
+    this.useColor = useColor;
+
   }
 
   /**
