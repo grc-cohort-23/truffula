@@ -1,6 +1,6 @@
+import java.io.File;
 import java.io.PrintStream;
 import java.util.List;
-
 /**
  * TruffulaPrinter is responsible for printing a directory tree structure
  * with optional colored output. It supports sorting files and directories
@@ -112,7 +112,51 @@ public class TruffulaPrinter {
     // DO NOT USE SYSTEM.OUT.PRINTLN
     // USE out.println instead (will use your ColorPrinter)
 
-    out.println("printTree was called!");
-    out.println("My options are: " + options);
+    File root = options.getRoot();
+    printTreeHelper(root, 0, "");
+
+
+    // out.println("printTree was called!");
+    // out.println("My options are: " + options);
+  }
+
+  //this is just like a bst tree traversal but with files
+  private void printTreeHelper(File file, int depth, String indent) {
+
+    if(file.isHidden() && !options.isShowHidden()){
+      return;
+    }
+
+    // i think this is correct, it mudulos the depth by the col sequence size
+    if(options.isUseColor()){
+      out.setCurrentColor(colorSequence.get(depth % colorSequence.size()));
+    }
+
+    // if(file.isHidden()){
+    //   out.setCurrentColor(ConsoleColor.GREEN);
+    // }
+
+
+    if(file.isDirectory()){
+    AlphabeticalFileSorter.sort(file.listFiles()); // <--- this is all i did for wave 7
+    out.println(indent + file.getName() + "/");
+    }
+    else{
+      out.println(indent + file.getName());
+    }
+
+    if (file.isDirectory()) {
+        File[] children = file.listFiles();
+
+        if (children != null) {
+            for (File child : children) {
+                printTreeHelper(child, depth + 1, indent + "   ");
+            }
+        }
+    }
   }
 }
+
+
+
+

@@ -149,4 +149,233 @@ public class TruffulaPrinterTest {
         // Assert that the output matches the expected output exactly
         assertEquals(expected.toString(), output);
     }
+
+    @Test
+    void testPrintTree_ContainsCorrectFolders(@TempDir File tempDir) throws IOException {
+        // Arrange: Build a simple directory tree
+        File root = new File(tempDir, "myFolder");
+        assertTrue(root.mkdir());
+
+        File apple = new File(root, "Apple.txt");
+        File banana = new File(root, "banana.txt");
+
+        apple.createNewFile();
+        banana.createNewFile();
+
+        File documents = new File(root, "Documents");
+        assertTrue(documents.mkdir());
+
+        File notes = new File(documents, "notes.txt");
+        notes.createNewFile();
+
+        TruffulaOptions options = new TruffulaOptions(root, false, false);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+        // Act
+        printer.printTree();
+
+        // Assert
+        String output = outputStream.toString();
+
+        assertTrue(output.contains("myFolder/"));
+        assertTrue(output.contains("Apple.txt"));
+        assertTrue(output.contains("banana.txt"));
+        assertTrue(output.contains("Documents/"));
+        assertTrue(output.contains("notes.txt"));
+        
+    }
+
+    @Test
+    void testPrintTree_CorrectFormatting(@TempDir File tempDir) throws IOException {
+
+        // Arrange: Build a simple directory tree
+        File root = new File(tempDir, "myFolder");
+        assertTrue(root.mkdir());
+
+        File apple = new File(root, "Apple.txt");
+        File banana = new File(root, "banana.txt");
+        apple.createNewFile();
+        banana.createNewFile();
+
+        File documents = new File(root, "Documents");
+        assertTrue(documents.mkdir());
+
+        File notes = new File(documents, "notes.txt");
+        notes.createNewFile();
+        
+        //Streams
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+
+        //Truffula printer and options
+        TruffulaOptions options = new TruffulaOptions(root, false, false);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+        // Act
+        printer.printTree();
+
+        // Assert
+        String output = outputStream.toString();
+        String nl = System.lineSeparator();
+        ConsoleColor reset = ConsoleColor.RESET;
+        ConsoleColor white = ConsoleColor.WHITE;
+
+        StringBuilder expected = new StringBuilder();
+        expected.append(white).append("myFolder/").append(nl).append(reset);
+        expected.append(reset).append("   Apple.txt").append(nl).append(reset);
+        expected.append(reset).append("   banana.txt").append(nl).append(reset);
+        expected.append(reset).append("   Documents/").append(nl).append(reset);
+        expected.append(reset).append("      notes.txt").append(nl).append(reset);
+
+        // Assert that the output matches the expected output exactly
+        assertEquals(expected.toString(), output);
+    }
+
+    @Test
+    void testPrintTree_Hidden_True(@TempDir File tempDir) throws IOException {
+
+        // Arrange: Build a simple directory tree
+        File root = new File(tempDir, "myFolder");
+        assertTrue(root.mkdir());
+
+        File apple = new File(root, "Apple.txt");
+        File banana = new File(root, "banana.txt");
+        apple.createNewFile();
+        banana.createNewFile();
+
+        createHiddenFile(root, ".hidden.txt"); // <-- this is the hidden file
+
+        File documents = new File(root, "Documents");
+        assertTrue(documents.mkdir());
+
+        File notes = new File(documents, "notes.txt");
+        notes.createNewFile();
+
+        //Streams
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+        
+        //Truffula printer and options
+        TruffulaOptions options = new TruffulaOptions(root, true, false);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        // Act
+        printer.printTree();
+
+        // Assert
+        String output = outputStream.toString();
+        String nl = System.lineSeparator();
+        ConsoleColor reset = ConsoleColor.RESET;
+        ConsoleColor white = ConsoleColor.WHITE;
+
+        StringBuilder expected = new StringBuilder();
+        expected.append(white).append("myFolder/").append(nl).append(reset);
+        expected.append(reset).append("   .hidden.txt").append(nl).append(reset); // <---expected to be shown
+        expected.append(reset).append("   Apple.txt").append(nl).append(reset);
+        expected.append(reset).append("   banana.txt").append(nl).append(reset);
+        expected.append(reset).append("   Documents/").append(nl).append(reset);
+        expected.append(reset).append("      notes.txt").append(nl).append(reset);
+
+        // Assert that the output matches the expected output exactly
+        assertEquals(expected.toString(), output);
+    }
+    @Test
+    void testPrintTree_Hidden_False(@TempDir File tempDir) throws IOException {
+        
+        // Arrange: Build a simple directory tree
+        File root = new File(tempDir, "myFolder");
+        assertTrue(root.mkdir());
+
+        File apple = new File(root, "Apple.txt");
+        File banana = new File(root, "banana.txt");
+        apple.createNewFile();
+        banana.createNewFile();
+
+        createHiddenFile(root, ".hidden.txt"); // <-- this is the hidden file
+
+        File documents = new File(root, "Documents");
+        assertTrue(documents.mkdir());
+
+        File notes = new File(documents, "notes.txt");
+        notes.createNewFile();
+
+        //Streams
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+        
+        //Truffula printer and options
+        TruffulaOptions options = new TruffulaOptions(root, false, false);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        // Act
+        printer.printTree();
+
+        // Assert
+        String output = outputStream.toString();
+        String nl = System.lineSeparator();
+        ConsoleColor reset = ConsoleColor.RESET;
+        ConsoleColor white = ConsoleColor.WHITE;
+
+        StringBuilder expected = new StringBuilder();
+        expected.append(white).append("myFolder/").append(nl).append(reset);
+        // expected.append(reset).append("   .hidden.txt").append(nl).append(reset); // <---expected to not be shown
+        expected.append(reset).append("   Apple.txt").append(nl).append(reset);
+        expected.append(reset).append("   banana.txt").append(nl).append(reset);
+        expected.append(reset).append("   Documents/").append(nl).append(reset);
+        expected.append(reset).append("      notes.txt").append(nl).append(reset);
+
+        // Assert that the output matches the expected output exactly
+        assertEquals(expected.toString(), output);
+    }
+
+    @Test
+    void testPrintTree_Color_True(@TempDir File tempDir) throws IOException {
+        
+        // Arrange: Build a simple directory tree
+        File root = new File(tempDir, "myFolder");
+        assertTrue(root.mkdir());
+
+        File apple = new File(root, "Apple.txt");
+        File banana = new File(root, "banana.txt");
+        apple.createNewFile();
+        banana.createNewFile();
+
+        createHiddenFile(root, ".hidden.txt");
+
+        File documents = new File(root, "Documents");
+        assertTrue(documents.mkdir());
+
+        File notes = new File(documents, "notes.txt");
+        notes.createNewFile();
+
+        //Streams
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+        
+        //Truffula printer and options
+        TruffulaOptions options = new TruffulaOptions(root, false, true);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        // Act
+        printer.printTree();
+
+        // Assert
+        String output = outputStream.toString();
+        String nl = System.lineSeparator();
+        ConsoleColor reset = ConsoleColor.RESET;
+        ConsoleColor white = ConsoleColor.WHITE;
+        ConsoleColor purple = ConsoleColor.PURPLE;
+        ConsoleColor yellow = ConsoleColor.YELLOW;
+
+        StringBuilder expected = new StringBuilder();
+        expected.append(white).append("myFolder/").append(nl).append(reset);
+        expected.append(purple).append("   Apple.txt").append(nl).append(reset);
+        expected.append(purple).append("   banana.txt").append(nl).append(reset);
+        expected.append(purple).append("   Documents/").append(nl).append(reset);
+        expected.append(yellow).append("      notes.txt").append(nl).append(reset);
+
+        // Assert that the output matches the expected output exactly
+        assertEquals(expected.toString(), output);
+    }
 }
