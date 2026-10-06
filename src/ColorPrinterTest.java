@@ -26,4 +26,71 @@ class ColorPrinterTest {
     // Assert: Verify the printed output
     assertEquals(expectedOutput, outputStream.toString());
   }
+
+  @Test
+  void testPrintBlueReset() {
+    // Arrange: Capture the printed output
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    PrintStream printStream = new PrintStream(outputStream);
+
+    ColorPrinter printer = new ColorPrinter(printStream);
+    printer.setCurrentColor(ConsoleColor.BLUE);
+
+    // Act: Print the messages
+    String message1 = "Dies Irae, ";
+    String message2 = "Dies Illa";
+    printer.print(message1);
+    printer.print(message2);
+
+    String expectedOutput = ConsoleColor.BLUE + "Dies Irae, " + ConsoleColor.RESET + ConsoleColor.BLUE + "Dies Illa" + ConsoleColor.RESET;
+
+    // Assert: Verify the printed output
+    assertEquals(expectedOutput, outputStream.toString());
+  }
+
+  @Test
+  void testPrintBlueNoReset() {
+    // Arrange: Capture the printed output
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    PrintStream printStream = new PrintStream(outputStream);
+
+    ColorPrinter printer = new ColorPrinter(printStream);
+    printer.setCurrentColor(ConsoleColor.BLUE);
+
+    // Act: Print the messages
+    String message1 = "Dies Irae, ";
+    String message2 = "Dies Illa";
+    printer.print(message1, false);
+    printer.print(message2, true);
+
+    String expectedOutput = ConsoleColor.BLUE + "Dies Irae, " + ConsoleColor.BLUE + "Dies Illa" + ConsoleColor.RESET;
+
+    // Assert: Verify the printed output
+    assertEquals(expectedOutput, outputStream.toString());
+  }
+
+  @Test
+  void testThreeColorChangesOneLine() {
+    // Arrange: Capture the printed output
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    PrintStream printStream = new PrintStream(outputStream);
+
+    ColorPrinter printer = new ColorPrinter(printStream);
+    printer.setCurrentColor(ConsoleColor.BLUE);
+
+    // Act: Print the messages and change colors
+    String message1 = "Soli ";
+    String message2 = "Deo ";
+    String message3 = "Gloria";
+    printer.print(message1);
+    printer.setCurrentColor(ConsoleColor.YELLOW);
+    printer.print(message2);
+    printer.setCurrentColor(ConsoleColor.RED);
+    printer.print(message3);
+
+    String expectedOutput = ConsoleColor.BLUE + "Soli " + ConsoleColor.RESET + ConsoleColor.YELLOW + "Deo " + ConsoleColor.RESET + ConsoleColor.RED + "Gloria" + ConsoleColor.RESET;
+
+    // Assert: Verify the printed output
+    assertEquals(expectedOutput, outputStream.toString());
+  }
 }

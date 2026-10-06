@@ -5,12 +5,24 @@ PLEASE MAKE FREQUENT COMMITS AS YOU FILL OUT THIS FILE.
 
 ## App.java
 
+The face of Truffula. Accepts a couple flags and a directory in a string. Probably calls other .java files like the options and printer files based on what's inputted.
+
 ## ConsoleColor.java
+
+Contains a color enum. Creates an object, ConsoleColor, which stores the ANSI escape code. Returns said escape code through getCode() and toString(). Will probably be used with specified print statements.
 
 ## ColorPrinter.java / ColorPrinterTest.java
 
+Contains the ColorPrinter constructor. Prints lines with color using ConsoleColor and a variety of output functions. Has a getter and setter.
+
 ## TruffulaOptions.java / TruffulaOptionsTest.java
+
+Controls specific options with command line inputs. Harder to understand, but I think it returns the directories intended to be sent to TruffulaPrinter?
 
 ## TruffulaPrinter.java / TruffulaPrinterTest.java
 
+Prints! Outputs paths by printing them with the requested colors and their children, signifying hierarchy through indentation.
+
 ## AlphabeticalFileSorter.java
+
+Sorts files alphabetically, ignoring character case. Uses lambdas (one-time use functions)

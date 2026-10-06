@@ -1,5 +1,6 @@
 import java.io.PrintStream;
 import java.util.List;
+import java.io.File;
 
 /**
  * TruffulaPrinter is responsible for printing a directory tree structure
@@ -102,17 +103,56 @@ public class TruffulaPrinter {
    *       README.md
    *    zebra.txt
    */
-  public void printTree() {
-    // TODO: Implement this!
-    // REQUIRED: ONLY use java.io, DO NOT use java.nio
-    
-    // Hints:
-    // - Add a recursive helper method
-    // - For Wave 6: Use AlphabeticalFileSorter
-    // DO NOT USE SYSTEM.OUT.PRINTLN
-    // USE out.println instead (will use your ColorPrinter)
+  public void printTree(TruffulaOptions to) {
+    printTree(to.getRoot(), 0, to.isShowHidden(), to.isUseColor(), 0);
+  }
+  
+  /**
+   * Helper method to printTree. Recursively moves through file trees, printing the name of the files
+   * and indenting them based on their file level.
+   * 
+   * @param file The current file.
+   * @param level The current file level. This is relative to the root file.
+   * @param showHidden Shows hidden files while true, doesn't when false.
+   * @param showColor Adds the default color tags to the beginning of the message if true, doesn't if false.
+   * @param colorIndex Current index inside the list of default colors.
+   */
+  private void printTree(File file, int level, boolean showHidden, boolean showColor, int colorIndex) {
+    String output = "";
 
-    out.println("printTree was called!");
-    out.println("My options are: " + options);
+    // adds a color code to the beginning of the message if printing in color is permitted.
+    if (showColor) out.setCurrentColor(DEFAULT_COLOR_SEQUENCE.get(colorIndex));
+
+    // indentation for directory level
+    for (int i = 0; i < level ; i++) output += "   ";
+
+    // if file IS hidden
+    if (file.isHidden()) {
+      // if true ADD file to output
+      // else DO NOTHING
+      if (showHidden) {
+        output += file.getName();
+        // directory extension for output if the file is a directory
+        if (file.isDirectory()) output += "/";
+        out.println(output);
+      }
+    // if file IS NOT hidden
+    } else {
+      output += file.getName();
+      // directory extension for output if the file is a directory
+      if (file.isDirectory()) output += "/";
+      out.println(output);
+    }
+
+    // recursion
+    // increments level by 1 every file going down
+    // increments colorIndex by 1, resetting it to 0 if the end of the list is hit
+    if (file.isDirectory()) {
+      if (file.listFiles() != null) {
+        for (File subfile : AlphabeticalFileSorter.sort(file.listFiles())) {
+          printTree(subfile, level + 1, showHidden, showColor, (colorIndex + 1) % DEFAULT_COLOR_SEQUENCE.size());
+        }
+      }  
+    }
   }
 }
