@@ -1,5 +1,7 @@
 import java.io.PrintStream;
 import java.util.List;
+import java.io.File;
+import java.util.ArrayList;
 
 /**
  * TruffulaPrinter is responsible for printing a directory tree structure
@@ -112,7 +114,87 @@ public class TruffulaPrinter {
     // DO NOT USE SYSTEM.OUT.PRINTLN
     // USE out.println instead (will use your ColorPrinter)
 
-    out.println("printTree was called!");
-    out.println("My options are: " + options);
+    // out.println("printTree was called!");
+    // out.println("My options are: " + options);
+
+    if (options.isUseColor()) printDirectoryWithColor(options.getRoot(), "", 0, colorSequence, 1);
+    else printDirectory(options.getRoot(), "", 0, colorSequence);
+  }
+
+  private void printDirectory(File root, String indentation, int count, List<ConsoleColor> colors) {
+    File[] fileArray = root.listFiles();
+    List<File> directory = new ArrayList<>();
+
+    if (fileArray == null) return; 
+    else {
+      fileArray = AlphabeticalFileSorter.sort(fileArray);
+      for (File file : fileArray) directory.add(file);
+    }
+
+    if (count == 0) {
+      if (options.isUseColor()) out.println(indentation + root.getName() + "/", true);
+      else out.println(indentation + root.getName() + "/", false);
+      count++;
+    }
+    indentation += "   ";
+
+    if (!options.isShowHidden()) {
+      directory = hideHiddenFiles(directory);
+    }
+
+    for (File file : directory) {
+      if (file.isDirectory()) {
+        out.println(indentation + file.getName() + "/", false);
+        printDirectory(file, indentation, count, colors);
+      } else {
+        out.println(indentation + file.getName(), false);
+      }
+    }
+  }
+
+  private void printDirectoryWithColor(File root, String indentation, int count, List<ConsoleColor> colors, int depth) {
+    File[] fileArray = root.listFiles();
+    List<File> directory = new ArrayList<>();
+    
+    if (fileArray == null) return; 
+    else {
+      fileArray = AlphabeticalFileSorter.sort(fileArray);
+      for (File file : fileArray) directory.add(file);
+    }
+
+    if (count == 0) {
+      if (options.isUseColor()) out.println(indentation + root.getName() + "/", true);
+      else out.println(indentation + root.getName() + "/", false);
+      count++;
+    }
+    indentation += "   ";
+
+    if (!options.isShowHidden()) {
+      directory = hideHiddenFiles(directory);
+    }
+
+    int color = depth % colors.size();
+    for (File file : directory) {
+      if (file.isDirectory()) {
+        out.setCurrentColor(colors.get(color));
+        out.println(indentation + file.getName() + "/", true);
+        if (depth == 3) depth = 0;
+        else depth++;
+        printDirectoryWithColor(file, indentation, count, colors, depth);
+      } else {
+        out.setCurrentColor(colors.get(color));
+        out.println(indentation + file.getName(), true);
+      }
+    }
+  }
+
+  private List<File> hideHiddenFiles(List<File> directory) {
+    List<File> visibleFiles = new ArrayList<>();
+
+    for (File file : directory) {
+      if (!file.getName().startsWith(".")) visibleFiles.add(file);
+    }
+
+    return visibleFiles;
   }
 }

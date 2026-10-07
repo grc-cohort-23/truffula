@@ -1,3 +1,4 @@
+import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
 /**
@@ -27,6 +28,26 @@ public class ColorPrinter {
    * The PrintStream to which the colored output will be written.
    */
   private final PrintStream printStream;
+
+  public static void main(String[] args) {
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    PrintStream printStream = new PrintStream(outputStream);
+
+    ColorPrinter printer = new ColorPrinter(printStream);
+    printer.setCurrentColor(ConsoleColor.YELLOW);
+
+    String firstPart = "I am the Lorax. ";
+    String secondPart = "I speak for the trees, ";
+    String thirdPart = "for the trees have no tongues.";
+    String author = "- by Dr. Seuss";
+
+    printer.print(firstPart);
+    printer.setCurrentColor(ConsoleColor.GREEN);
+    printer.print(secondPart, false);
+    printer.println(thirdPart);
+    printer.print(author);
+    System.out.println(outputStream.toString());
+  }
 
   /**
    * Returns the current color set for the printer.
@@ -87,6 +108,14 @@ public class ColorPrinter {
    */
   public void print(String message, boolean reset) {
     // TODO: Implement this!
+    if (reset) {
+      printStream.print(currentColor + message + ConsoleColor.RESET);
+      currentColor = ConsoleColor.WHITE;
+    } else if (currentColor != ConsoleColor.WHITE) {
+      printStream.print(currentColor + message);
+    } else {
+      printStream.print(message);
+    }
   }
 
   /**
