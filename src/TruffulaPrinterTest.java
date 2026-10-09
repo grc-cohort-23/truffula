@@ -1,5 +1,7 @@
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+//false checks for wave 5
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -149,4 +151,125 @@ public class TruffulaPrinterTest {
         // Assert that the output matches the expected output exactly
         assertEquals(expected.toString(), output);
     }
+
+    //helper method for wave 5 tests
+    //coppied baos logic from above 
+    private static String runPrinter(TruffulaOptions options) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        new TruffulaPrinter(options, new PrintStream(baos)).printTree();
+        return baos.toString();
+    }
+    //Wave 5 test copied format from above to get started
+    // both tests will test ShowHidden true or false
+    @Test
+    public void testHiddenFileIsSkippedWhenShowHiddenFalse (@TempDir File tempDir) throws IOException{
+        new File(tempDir, "visible.txt").createNewFile();
+        createHiddenFile(tempDir, ".secret.txt");
+
+         String output = runPrinter(new TruffulaOptions(tempDir, false, false));
+
+        assertTrue(output.contains("visible.txt"));
+        assertFalse(output.contains(".secret.txt"), "hidden file must not be printed");
+    }
+
+    @Test
+    public void testHiddenFileIsShownWhenShowHiddenTrue(@TempDir File tempDir) throws IOException {
+        new File(tempDir, "visible.txt").createNewFile();
+        createHiddenFile(tempDir, ".secret.txt");
+
+        String output = runPrinter(new TruffulaOptions(tempDir, true, false));
+
+        assertTrue(output.contains("visible.txt"));
+        assertTrue(output.contains(".secret.txt"), "hidden file should be printed with -h");
+    }
+
+
+    //Wave 6 helper method and tests
+    //found good documentation on lineSeparator saving for later 
+    // https://www.geeksforgeeks.org/java/java-system-lineseparator-method/
+    private static String line(ConsoleColor color, String text) {
+    return color.toString() + text + System.lineSeparator() + ConsoleColor.RESET;
+    }
+
+    @Test
+    public void testColorsCycleThroughDefaultSequence(@TempDir File tempDir) throws IOException {
+        // tempDir/a/b/c/d.txt  (a chain deep enough to wrap the 3-color cycle)
+        File c = new File(tempDir, "a/b/c");
+        assertTrue(c.mkdirs());
+        new File(c, "d.txt").createNewFile();
+
+        String output = runPrinter(new TruffulaOptions(tempDir, false, true));
+
+        // The root's name is a random temp-folder name, so read it from the File.
+        StringBuilder expected = new StringBuilder();
+        expected.append(line(ConsoleColor.WHITE,  tempDir.getName() + "/"));
+        expected.append(line(ConsoleColor.PURPLE, "   a/"));
+        expected.append(line(ConsoleColor.YELLOW, "      b/"));
+        expected.append(line(ConsoleColor.WHITE,  "         c/")); 
+        expected.append(line(ConsoleColor.PURPLE, "            d.txt"));          
+        assertEquals(expected.toString(), output);
+    }
+
+    @Test
+    public void testNoColorPrintsEverythingInWhite(@TempDir File tempDir) throws IOException {
+        File a = new File(tempDir, "a");
+        assertTrue(a.mkdir());
+        new File(a, "b.txt").createNewFile();
+
+        String output = runPrinter(new TruffulaOptions(tempDir, false, false)); // useColor = false
+
+        StringBuilder expected = new StringBuilder();
+        expected.append(line(ConsoleColor.WHITE, tempDir.getName() + "/"));
+        expected.append(line(ConsoleColor.WHITE, "   a/"));
+        expected.append(line(ConsoleColor.WHITE, "      b.txt"));
+        assertEquals(expected.toString(), output);
+    }
+
+    //wave 7 tests
+    @Test
+    public void testDataIsNotAlphabetical(@TempDir File tempDir) throws IOException {
+    // Created out of order and with mixed case.
+        new File(tempDir, "zurg.txt").createNewFile();
+        new File(tempDir, "Beans.txt").createNewFile();
+        new File(tempDir, "ancientAliens.txt").createNewFile();
+        new File(tempDir, "DoNotLook.txt").createNewFile();
+
+        String output = runPrinter(new TruffulaOptions(tempDir, false, false));
+
+        StringBuilder expected = new StringBuilder();
+        expected.append(line(ConsoleColor.WHITE, tempDir.getName() + "/"));
+        expected.append(line(ConsoleColor.WHITE, "   ancientAliens.txt"));
+        expected.append(line(ConsoleColor.WHITE, "   Beans.txt")); 
+        expected.append(line(ConsoleColor.WHITE, "   DoNotLook.txt"));
+        expected.append(line(ConsoleColor.WHITE, "   zurg.txt"));
+        assertEquals(expected.toString(), output);
+    }
+
+    @Test
+    public void testNestedDirectoriesAreSorted(@TempDir File tempDir) throws IOException {
+        File dir = new File(tempDir, "DiscordChannel");
+        assertTrue(dir.mkdir());
+        new File(dir, "Yousif.txt").createNewFile();
+        new File(dir, "Drew.txt").createNewFile();
+        new File(tempDir, "Account.txt").createNewFile();
+
+        String output = runPrinter(new TruffulaOptions(tempDir, false, false));
+
+        StringBuilder expected = new StringBuilder();
+        expected.append(line(ConsoleColor.WHITE, tempDir.getName() + "/"));
+        expected.append(line(ConsoleColor.WHITE, "   Account.txt"));
+        expected.append(line(ConsoleColor.WHITE, "   DiscordChannel/"));     
+        expected.append(line(ConsoleColor.WHITE, "      Drew.txt"));  
+        expected.append(line(ConsoleColor.WHITE, "      Yousif.txt"));
+        assertEquals(expected.toString(), output);
+        }
+
+
+
+
+
+
+    
 }
+
+ 

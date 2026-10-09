@@ -87,6 +87,15 @@ public class ColorPrinter {
    */
   public void print(String message, boolean reset) {
     // TODO: Implement this!
+    //first print the color code 
+    printStream.print(currentColor);
+    //then print the message
+    printStream.print(message);
+
+    //check to see if terminal should be reset 
+    if(reset){
+      printStream.print(ConsoleColor.RESET);
+    }
   }
 
   /**

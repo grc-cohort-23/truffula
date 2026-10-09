@@ -26,4 +26,29 @@ public class TruffulaOptionsTest {
     assertTrue(options.isShowHidden());
     assertFalse(options.isUseColor());
   }
+
+  @Test 
+  void testHiddenFlag(@TempDir File tempDir)
+    throws FileNotFoundException {
+      //Arrange create a temp directory and include the hidden file reference -h
+      String[] args = {"-h", tempDir.getAbsolutePath()};
+    // Act parse through the argument 
+    TruffulaOptions options = new TruffulaOptions(args);
+    // Assert verify hidden files is enabled but color stays default
+    assertTrue(options.isShowHidden());
+    assertTrue(options.isUseColor());
+}
+
+  @Test
+  void testNoColorFlagDisablesColor(@TempDir File tempDir)
+          throws FileNotFoundException {
+      // Arrange include only the no color flag and a temp dir
+      String[] args = {"-nc", tempDir.getAbsolutePath()};
+      // Act parse arguments
+      TruffulaOptions options = new TruffulaOptions(args);
+      // Assert make sure color is disabled and hidden remains disabled by default
+      assertFalse(options.isShowHidden());
+      assertFalse(options.isUseColor());
+  }
+  
 }
