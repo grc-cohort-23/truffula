@@ -149,4 +149,74 @@ public class TruffulaPrinterTest {
         // Assert that the output matches the expected output exactly
         assertEquals(expected.toString(), output);
     }
+
+    @Test
+    void testPrintTreeBasicStructure(@TempDir File tempDir) throws Exception {
+        // Arrange: Create a nested structure in the temp directory
+        // tempDir/
+        //    file1.txt
+        //    subFolder/
+        //       file2.txt
+        File file1 = new File(tempDir, "file1.txt");
+        file1.createNewFile();
+
+        File subFolder = new File(tempDir, "subFolder");
+        subFolder.mkdir();
+
+        File file2 = new File(subFolder, "file2.txt");
+        file2.createNewFile();
+
+        TruffulaOptions options = new TruffulaOptions(tempDir, true, false);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        // Act
+        printer.printTree();
+
+        // Assert: Verify output contains the structure with correct indentation
+        String output = outputStream.toString();
+        
+        assertTrue(output.contains(tempDir.getName() + "/"));
+        assertTrue(output.contains("   file1.txt"));
+        assertTrue(output.contains("   subFolder/"));
+        assertTrue(output.contains("      file2.txt")); // 6 spaces
+    }
+
+    @Test
+    void testPrintTree_ColorCyclingWithoutAlphabeticalOrder(@TempDir File tempDir) throws IOException {
+        // Arrange
+        File subDir = new File(tempDir, "subDir");
+        assertTrue(subDir.mkdir(), "subDir should be created");
+
+        File file = new File(subDir, "file.txt");
+        file.createNewFile();
+
+        TruffulaOptions options = new TruffulaOptions(tempDir, true, true);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        // Act
+        printer.printTree();
+
+        // Assert
+        String output = baos.toString();
+        String nl = System.lineSeparator();
+
+        ConsoleColor reset = ConsoleColor.RESET;
+        ConsoleColor white = ConsoleColor.WHITE;
+        ConsoleColor purple = ConsoleColor.PURPLE;
+        ConsoleColor yellow = ConsoleColor.YELLOW;
+
+        StringBuilder expected = new StringBuilder();
+        expected.append(white).append(tempDir.getName() + "/").append(nl).append(reset);
+        expected.append(purple).append("   subDir/").append(nl).append(reset);
+        expected.append(yellow).append("      file.txt").append(nl).append(reset);
+
+        assertEquals(expected.toString(), output);
+    }
 }
+//done
