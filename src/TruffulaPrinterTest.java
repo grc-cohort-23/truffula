@@ -149,4 +149,202 @@ public class TruffulaPrinterTest {
         // Assert that the output matches the expected output exactly
         assertEquals(expected.toString(), output);
     }
+
+    @Test
+    public void testPrintTreeWithFoldersOnly(@TempDir File tempDir) throws IOException {
+        File myFolder = new File(tempDir, "myFolder");
+        assertTrue(myFolder.mkdir(), "myFolder should be created");
+
+        File documents = new File(myFolder, "Documents");
+        assertTrue(documents.mkdir(), "Documents directory should be created");
+
+        File images = new File(documents, "images");
+        assertTrue(images.mkdir(), "images directory should be created");
+
+        TruffulaOptions options = new TruffulaOptions(myFolder, false, false);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        printer.printTree();
+
+        String output = baos.toString();
+        String nl = System.lineSeparator();
+
+        StringBuilder expected = new StringBuilder();
+        expected.append("myFolder/").append(nl);
+        expected.append("   Documents/").append(nl);
+        expected.append("      images/").append(nl);
+
+        assertEquals(expected.toString(), output);
+    }
+
+    @Test
+    public void testPrintTreeWithHiddenFileShown(@TempDir File tempDir) throws IOException {
+        File myFolder = new File(tempDir, "myFolder");
+        assertTrue(myFolder.mkdir(), "myFolder should be created");
+
+        createHiddenFile(myFolder, ".hidden.txt");
+
+        File documents = new File(myFolder, "Documents");
+        documents.mkdir();
+
+        File images = new File(documents, "images");
+        images.mkdir();
+
+        TruffulaOptions options = new TruffulaOptions(myFolder, true, false);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        printer.printTree();
+
+        String output = baos.toString();
+        String nl = System.lineSeparator();
+
+        StringBuilder expected = new StringBuilder();
+        expected.append("myFolder/").append(nl);
+        expected.append("   .hidden.txt").append(nl);
+        expected.append("   Documents/").append(nl);
+        expected.append("      images/").append(nl);
+
+        assertEquals(expected.toString(), output);
+    }
+
+    @Test
+    public void testPrintTreeWithHiddenFileNotShown(@TempDir File tempDir) throws IOException {
+        File myFolder = new File(tempDir, "myFolder");
+        assertTrue(myFolder.mkdir(), "myFolder should be created");
+
+        createHiddenFile(myFolder, ".hidden.txt");
+
+        File documents = new File(myFolder, "Documents");
+        documents.mkdir();
+
+        File images = new File(documents, "images");
+        images.mkdir();
+
+        TruffulaOptions options = new TruffulaOptions(myFolder, false, false);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        printer.printTree();
+
+        String output = baos.toString();
+        String nl = System.lineSeparator();
+
+        StringBuilder expected = new StringBuilder();
+        expected.append("myFolder/").append(nl);
+        expected.append("   Documents/").append(nl);
+        expected.append("      images/").append(nl);
+
+        assertEquals(expected.toString(), output);
+    }
+
+    @Test
+    public void testPrintTreeWithHiddenFileShownAndColor(@TempDir File tempDir) throws IOException {
+        File myFolder = new File(tempDir, "myFolder");
+        assertTrue(myFolder.mkdir(), "myFolder should be created");
+
+        createHiddenFile(myFolder, ".hidden.txt");
+
+        File documents = new File(myFolder, "Documents");
+        documents.mkdir();
+
+        File images = new File(documents, "images");
+        images.mkdir();
+
+        TruffulaOptions options = new TruffulaOptions(myFolder, true, true);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        printer.printTree();
+
+        String output = baos.toString();
+        String nl = System.lineSeparator();
+
+        ConsoleColor reset = ConsoleColor.RESET;
+        ConsoleColor white = ConsoleColor.WHITE;
+        ConsoleColor purple = ConsoleColor.PURPLE;
+        ConsoleColor yellow = ConsoleColor.YELLOW;
+
+        StringBuilder expected = new StringBuilder();
+        expected.append(white).append("myFolder/").append(nl).append(reset);
+        expected.append(purple).append("   .hidden.txt").append(nl).append(reset);
+        expected.append(purple).append("   Documents/").append(nl).append(reset);
+        expected.append(yellow).append("      images/").append(nl).append(reset);
+
+        assertEquals(expected.toString(), output);
+    }
+
+    @Test
+    public void testPrintTreeSortingNonAlphabeticalFoldersAndFilesAlphabetically(@TempDir File tempDir) throws IOException {
+        //Make Folder A and its contents
+        File aFolder = new File(tempDir, "aFolder");
+        aFolder.mkdir();
+
+        File z = new File(aFolder, "z.txt");
+        File h = new File(aFolder, "h.docx");
+        File d = new File(aFolder, "d.flp");
+        z.createNewFile();
+        h.createNewFile();
+        d.createNewFile();
+
+        //Make folder R and its contents
+        File rFolder = new File(tempDir, "rFolder");
+        rFolder.mkdir();
+        
+        File g = new File(rFolder, "g.flp");
+        g.createNewFile();
+        File tFolder = new File(rFolder, "tFolder");
+        tFolder.mkdir();
+        File yFolder = new File(tFolder, "yFolder");
+        yFolder.mkdir();
+
+        //Make folder I and its contents
+        File iFolder = new File(tempDir, "iFolder");
+        iFolder.mkdir();
+
+        File l = new File(iFolder, "l.png");
+        l.createNewFile();
+        File q = new File(iFolder, "q.png");
+        q.createNewFile();
+        File o = new File(iFolder, "o.gif");
+        o.createNewFile();
+
+        TruffulaOptions options = new TruffulaOptions(tempDir, true, true);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        printer.printTree();
+
+        String output = baos.toString();
+        String nl = System.lineSeparator();
+
+        ConsoleColor reset = ConsoleColor.RESET;
+        ConsoleColor white = ConsoleColor.WHITE;
+        ConsoleColor purple = ConsoleColor.PURPLE;
+        ConsoleColor yellow = ConsoleColor.YELLOW;
+
+        //abcdefghijklmnopqrstuvwxyz
+        StringBuilder expected = new StringBuilder();
+        expected.append(white).append(tempDir.getName()).append("/").append(nl).append(reset);
+        expected.append(purple).append("   aFolder/").append(nl).append(reset);
+        expected.append(yellow).append("      d.flp").append(nl).append(reset);
+        expected.append(yellow).append("      h.docx").append(nl).append(reset);
+        expected.append(yellow).append("      z.txt").append(nl).append(reset);
+        expected.append(purple).append("   iFolder/").append(nl).append(reset);
+        expected.append(yellow).append("      l.png").append(nl).append(reset);
+        expected.append(yellow).append("      o.gif").append(nl).append(reset);
+        expected.append(yellow).append("      q.png").append(nl).append(reset);
+        expected.append(purple).append("   rFolder/").append(nl).append(reset);
+        expected.append(yellow).append("      g.flp").append(nl).append(reset);
+        expected.append(yellow).append("      tFolder/").append(nl).append(reset);
+        expected.append(white).append("         yFolder/").append(nl).append(reset);
+
+        assertEquals(expected.toString(), output);
+    }
 }
