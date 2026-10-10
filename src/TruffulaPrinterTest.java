@@ -149,4 +149,219 @@ public class TruffulaPrinterTest {
         // Assert that the output matches the expected output exactly
         assertEquals(expected.toString(), output);
     }
+
+    @Test
+    public void testPrintTree_NestedIndentation(@TempDir File tempDir) throws IOException {
+        // Arrange: one item per folder so order doesn't matter
+        File myFolder = new File(tempDir, "myFolder");
+        myFolder.mkdir();
+        File sub = new File(myFolder, "sub");
+        sub.mkdir();
+        File file = new File(sub, "file.txt");
+        file.createNewFile();
+
+        TruffulaOptions options = new TruffulaOptions(myFolder, false, false);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        // Act
+        printer.printTree();
+
+        // Assert: 0, 3, then 6 spaces; folders end in "/"
+        String nl = System.lineSeparator();
+        ConsoleColor white = ConsoleColor.WHITE;
+        ConsoleColor reset = ConsoleColor.RESET;
+
+        String expected =
+            white + "myFolder/" + nl + reset +
+            white + "   sub/" + nl + reset +
+            white + "      file.txt" + nl + reset;
+
+        assertEquals(expected, baos.toString());
+}
+
+    @Test 
+    public void testPrintTree_HiddenFileNotShown(@TempDir File tempDir) throws IOException {
+        //Arrange : one hidden file and one visible file
+        File myFolder = new File(tempDir, "myFolder");
+        myFolder.mkdir();
+        createHiddenFile(myFolder, ".hidden.txt");
+        File visible = new File(myFolder, "visible.txt");
+        visible.createNewFile();
+
+        // showHidden = false, useColor = false
+        TruffulaOptions options = new TruffulaOptions(myFolder, false, false);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        //Act
+        printer.printTree();
+
+        // Assert: the hidden file is NOT printed
+        String nl = System.lineSeparator();
+        ConsoleColor white = ConsoleColor.WHITE;
+        ConsoleColor reset = ConsoleColor.RESET;
+
+        String expected = 
+            white + "myFolder/" + nl + reset + white + "   visible.txt" + nl + reset;
+
+        assertEquals(expected, baos.toString());
+    }
+    
+    @Test 
+    public void testPrintTree_HiddenFileShown(@TempDir File tempDir) throws IOException {
+        // Arrange: only a hidden file
+        File myFolder = new File(tempDir, "myFolder");
+        myFolder.mkdir();
+        createHiddenFile(myFolder, ".hidden.txt");
+
+        // showHidden = true, useColor = false
+        TruffulaOptions options = new TruffulaOptions(myFolder, true, false);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        //Act
+        printer.printTree();
+
+        // Assert: the hidden file IS printed
+        String nl = System.lineSeparator();
+        ConsoleColor white = ConsoleColor.WHITE;
+        ConsoleColor reset = ConsoleColor.RESET;
+
+        String expected = 
+            white + "myFolder/" + nl + reset + white + "   .hidden.txt" + nl + reset;
+
+        assertEquals(expected, baos.toString());
+    }
+
+    @Test
+    public void testPrintTree_ColorCycleByDepth(@TempDir File tempDir) throws IOException {
+        // Arrange: one item per folder so order doesn't matter
+        File myFolder = new File(tempDir, "myFolder");
+        myFolder.mkdir();
+        File sub = new File(myFolder, "sub");
+        sub.mkdir();
+        File deep = new File(sub, "deep");
+        deep.mkdir();
+        File file = new File(deep, "file.txt");
+        file.createNewFile();
+
+        // showHidden = false, useColor = true
+        TruffulaOptions options = new TruffulaOptions(myFolder, false, true);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        // Act
+        printer.printTree();
+
+        // Assert: white, purple, yellow, then white again at depth 3
+        String nl = System.lineSeparator();
+        ConsoleColor white = ConsoleColor.WHITE;
+        ConsoleColor purple = ConsoleColor.PURPLE;
+        ConsoleColor yellow = ConsoleColor.YELLOW;
+        ConsoleColor reset = ConsoleColor.RESET;
+
+        String expected =
+            white + "myFolder/" + nl + reset +
+            purple + "   sub/" + nl + reset +
+            yellow + "      deep/" + nl + reset +
+            white + "         file.txt" + nl + reset;
+
+        assertEquals(expected, baos.toString());
+    }
+
+    @Test 
+    public void testPrintTree_SortsAlphabeticallyIgnoringCase(@TempDir File tempDir) throws IOException {
+        //Arrange: files created out of order, with mixed upper and lower case
+        File myFolder = new File(tempDir, "myFolder");
+        myFolder.mkdir();
+        new File(myFolder, "zebra.txt").createNewFile();
+        new File(myFolder, "Cherry.txt").createNewFile();
+        new File(myFolder, "apple.txt").createNewFile();
+        new File(myFolder, "Banana.txt").createNewFile();
+
+        //showHidden = false, useColor = false
+        TruffulaOptions options = new TruffulaOptions(myFolder, false, false);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        //Act
+        printer.printTree();
+
+        //Assert: A-Z order, capital letters don't change the order
+        String nl = System.lineSeparator();
+        ConsoleColor white = ConsoleColor.WHITE;
+        ConsoleColor reset = ConsoleColor.RESET;
+
+        String expected =
+            white + "myFolder/" + nl + reset +
+            white + "   apple.txt" + nl + reset +
+            white + "   Banana.txt" + nl + reset +
+            white + "   Cherry.txt" + nl + reset +
+            white + "   zebra.txt" + nl + reset;
+
+        assertEquals(expected, baos.toString());
+    }
+
+    @Test
+    public void testPrintTree_EmptyFolder(@TempDir File tempDir) {
+        // Arrange: a folder with nothing inside
+        File myFolder = new File(tempDir, "myFolder");
+        myFolder.mkdir();
+
+        // showHidden = false, useColor = false
+        TruffulaOptions options = new TruffulaOptions(myFolder, false, false);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        // Act
+        printer.printTree();
+
+        // Assert: only the folder name is printed
+        String nl = System.lineSeparator();
+        ConsoleColor white = ConsoleColor.WHITE;
+        ConsoleColor reset = ConsoleColor.RESET;
+
+        String expected = white + "myFolder/" + nl + reset;
+
+        assertEquals(expected, baos.toString());
+    }
+
+    @Test
+    public void testPrintTree_HiddenFileInSubfolderNotShown(@TempDir File tempDir) throws IOException {
+        // Arrange: a hidden file and a visible file one level down
+        File myFolder = new File(tempDir, "myFolder");
+        myFolder.mkdir();
+        File sub = new File(myFolder, "sub");
+        sub.mkdir();
+        createHiddenFile(sub, ".hidden.txt");
+        new File(sub, "visible.txt").createNewFile();
+
+        // showHidden = false, useColor = false
+        TruffulaOptions options = new TruffulaOptions(myFolder, false, false);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        // Act
+        printer.printTree();
+
+        // Assert: the hidden file is skipped inside the subfolder too
+        String nl = System.lineSeparator();
+        ConsoleColor white = ConsoleColor.WHITE;
+        ConsoleColor reset = ConsoleColor.RESET;
+
+        String expected =
+            white + "myFolder/" + nl + reset +
+            white + "   sub/" + nl + reset +
+            white + "      visible.txt" + nl + reset;
+
+        assertEquals(expected, baos.toString());
+    }
 }
