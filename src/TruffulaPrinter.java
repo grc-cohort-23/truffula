@@ -1,5 +1,6 @@
 import java.io.PrintStream;
 import java.util.List;
+import java.io.File;
 
 /**
  * TruffulaPrinter is responsible for printing a directory tree structure
@@ -75,11 +76,13 @@ public class TruffulaPrinter {
     out = new ColorPrinter(outStream);
   }
 
+
+  
   /**
    * WAVE 4: Prints a tree representing the directory structure, with directories and files
    * sorted in a case-insensitive manner. The tree is displayed with 3 spaces of
    * indentation for each directory level.
-   * 
+   *
    * WAVE 5: If hidden files are not to be shown, then no hidden files/folders will be shown.
    *
    * WAVE 6: If color is enabled, the output cycles through colors at each directory level
@@ -105,6 +108,62 @@ public class TruffulaPrinter {
   public void printTree() {
     // TODO: Implement this!
     // REQUIRED: ONLY use java.io, DO NOT use java.nio
+    File root = options.getRoot();
+    String rootName = root.getName();
+    if(options.isUseColor()) {
+      out.setCurrentColor(ConsoleColor.WHITE);
+    }
+    
+    out.println(rootName + "/");
+    
+    
+    helperMethod(root, 1);
+    }
+
+    private void helperMethod(File directory, int depth) {
+      File[] files = directory.listFiles();
+
+      AlphabeticalFileSorter.sort(files);
+
+      for (File file : files) {
+        String indentation = "";
+
+        for (int i = 0; i < depth; i++) {
+          indentation += "   ";
+        }
+        
+        if (!options.isShowHidden() && file.isHidden()) {
+          continue;
+        }
+        if (options.isUseColor()) {
+          
+          if(depth % 3 == 0) {
+          out.setCurrentColor(ConsoleColor.WHITE);
+           } else if (depth % 3 == 2) {
+          out.setCurrentColor(ConsoleColor.YELLOW);
+
+           } else if (depth % 3 == 1) {
+          out.setCurrentColor(ConsoleColor.PURPLE);
+           }
+          }
+
+        if (file.isDirectory()) {
+          out.println(indentation + file.getName() + "/");
+          helperMethod(file, depth + 1);
+        } 
+        else {
+          out.println(indentation + file.getName());
+        }
+      
+        
+
+        
+      }
+
+    }
+
+
+
     
     // Hints:
     // - Add a recursive helper method
@@ -112,7 +171,7 @@ public class TruffulaPrinter {
     // DO NOT USE SYSTEM.OUT.PRINTLN
     // USE out.println instead (will use your ColorPrinter)
 
-    out.println("printTree was called!");
-    out.println("My options are: " + options);
+    // out.println("printTree was called!");
+    // out.println("My options are: " + options);
   }
-}
+
