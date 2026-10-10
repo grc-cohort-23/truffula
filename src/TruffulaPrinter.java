@@ -1,4 +1,5 @@
 import java.io.PrintStream;
+import java.io.File;
 import java.util.List;
 
 /**
@@ -112,7 +113,25 @@ public class TruffulaPrinter {
     // DO NOT USE SYSTEM.OUT.PRINTLN
     // USE out.println instead (will use your ColorPrinter)
 
-    out.println("printTree was called!");
-    out.println("My options are: " + options);
+    printTree(options.getRoot(), 0);
+  }
+
+  private void printTree(File root, int layer){
+    if(root.isHidden() && !options.isShowHidden() && layer != 0) return;
+    ConsoleColor color;
+    if(options.isUseColor()) color = colorSequence.get(layer % colorSequence.size());
+    else color = ConsoleColor.RESET;
+    out.setCurrentColor(color);
+    String result = "";
+    for(int i = 0; i < layer; i++) result += "   ";
+    result += root.getName();
+    if(root.isDirectory()) result += "/";
+    out.print(result + "\n");
+    if(root.isDirectory() && root.listFiles() != null){
+      File[] children = AlphabeticalFileSorter.sort(root.listFiles());
+      for(File child : children){
+        printTree(child, layer + 1);
+      }  
+    }
   }
 }

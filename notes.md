@@ -4,13 +4,14 @@ As part of Wave 0, please fill out notes for each of the below files. They are i
 PLEASE MAKE FREQUENT COMMITS AS YOU FILL OUT THIS FILE.
 
 ## App.java
+Contains the main for the app. Seems like this is where the app checks for arguments such as '-h' to show hidden files. 
 
 ## ConsoleColor.java
-
+Sets the color of the text in the console using ANSI excape codes. 
 ## ColorPrinter.java / ColorPrinterTest.java
-
+Prints text to the console in color. 
 ## TruffulaOptions.java / TruffulaOptionsTest.java
-
+Constructs a TruffulaOptions object that sets value for the root, if it shows hidden files, and if a color is ibeing used. 
 ## TruffulaPrinter.java / TruffulaPrinterTest.java
 
 ## AlphabeticalFileSorter.java
