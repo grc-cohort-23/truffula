@@ -4,13 +4,64 @@ As part of Wave 0, please fill out notes for each of the below files. They are i
 PLEASE MAKE FREQUENT COMMITS AS YOU FILL OUT THIS FILE.
 
 ## App.java
+- Application for printing directory tree
+- Show hidden files
+- Use color output
+- Root directory to begin printing tree
+- hidden files are identified by names that start with a .
+- color output is enabled by default, disable by using flags. Flags are __ ?
+ -h show hidden files
+ -nc do not use color
+ 
 
 ## ConsoleColor.java
+- Using enum instead of class 
+- Only colors allowed to choose:
+BLACK
+RED
+GREEN
+YELLOW
+BLUE
+PURPLE
+CYAN
+WHITE
+RESET
+-NSI escape code. A terminal recognizes it as an instruction rather than ordinary text.
+-getCode() returns the code 
+-toString returns the code so the colors can be used directly
+-Reset, changes the terminal color back to default
+
+
 
 ## ColorPrinter.java / ColorPrinterTest.java
+- This class is responsible for printing colored text
+-stores currentColor using ConsoleColor enum and a PrintStream that determines where the output is printed
+- setCurrentColor() changes the color 
+- getCurrentColor returns it
+- reset determines whethere the console color should reset after printing
+- the constructor allows the printer to start with either default white color or a specifed color
+- need to implement print(String message, boolean rest)
+
 
 ## TruffulaOptions.java / TruffulaOptionsTest.java
+- class stores settings for how the directory tree should be displayed.
+- stores root directory as a file
+- -h turns on hiddens files 
+- -nc turns off colors
+- getters allow other classes to accesss these settings 
+- unfinished contrucotr will parse command line arguemnts and check the path exists and is a directory
 
 ## TruffulaPrinter.java / TruffulaPrinterTest.java
+- printing a directory tree struture
+- recevies a TruffulaOptions  object 
+- colorPrinter for output
+- many construcotrs 
+- contructor overloading
+- all constructor call the main constructor
+- printTree() isnt implemented 
+- need to recurse through the root directory and print files & folders
 
 ## AlphabeticalFileSorter.java
+- Take an array of files/folders and put them in alphabetical order by their names
+- sort() method is static , can be called wihtout creating an alphabeticalFilerSorter object
+- uses Arrays.sort() and lambda to compare file names
