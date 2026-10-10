@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TruffulaPrinterTest {
@@ -149,4 +150,232 @@ public class TruffulaPrinterTest {
         // Assert that the output matches the expected output exactly
         assertEquals(expected.toString(), output);
     }
+
+    @Test
+    void testPrintTree(@TempDir File tempDir) throws IOException {
+        // Create root folder here
+        File root = new File(tempDir, "root");
+        root.mkdir();
+
+        // Create one file inside root
+        File file = new File(root, "hello.txt");
+        file.createNewFile();
+        TruffulaOptions options = new TruffulaOptions(root, false, false);
+
+        // Capture output
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+
+        PrintStream printStream = new PrintStream(output);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        
+        // Print tree
+        printer.printTree();
+
+        String result = output.toString();
+
+        // Check folder and file were printed
+        assertTrue(result.contains("root/"));
+        assertTrue(result.contains("hello.txt"));
+    }
+
+    @Test
+void testHiddenFileShown(@TempDir File tempDir) throws IOException {
+    File root = new File(tempDir, "root");
+    root.mkdir();
+
+    createHiddenFile(root, ".secret.txt");
+
+    TruffulaOptions options =
+        new TruffulaOptions(root, true, false);
+
+    ByteArrayOutputStream output =
+        new ByteArrayOutputStream();
+
+    PrintStream printStream =
+        new PrintStream(output);
+
+    TruffulaPrinter printer =
+        new TruffulaPrinter(options, printStream);
+
+    printer.printTree();
+
+    String result = output.toString();
+
+    assertTrue(result.contains(".secret.txt"));
+}
+
+    @Test
+    void testHiddenFileNotShown(@TempDir File tempDir) throws IOException {
+        // Create root folder
+        File root = new File(tempDir, "root");
+        root.mkdir();
+
+        // Create normal file
+        File normalFile = new File(root, "hello.txt");
+        normalFile.createNewFile();
+
+        // Create hidden file
+        createHiddenFile(root, ".hidden.txt");
+
+        // Do not show hidden files
+        TruffulaOptions options =
+            new TruffulaOptions(root, false, false);
+
+        // Capture output
+        ByteArrayOutputStream output =
+            new ByteArrayOutputStream();
+
+        PrintStream printStream =
+            new PrintStream(output);
+
+        TruffulaPrinter printer =
+            new TruffulaPrinter(options, printStream);
+
+        // Print tree
+        printer.printTree();
+
+        String result = output.toString();
+
+        // Normal file should show
+        assertTrue(result.contains("hello.txt"));
+
+        // Hidden file should not show
+        assertFalse(result.contains(".hidden.txt"));
+}
+// CHeck that each tree level uses the correct color folliwng the instruction
+@Test
+void testColors(@TempDir File tempDir) throws IOException {
+    File root = new File(tempDir, "root");
+    root.mkdir();
+
+    File child = new File(root, "file.txt");
+    child.createNewFile();
+
+    TruffulaOptions options =
+        new TruffulaOptions(root, false, true);
+
+    ByteArrayOutputStream output =
+        new ByteArrayOutputStream();
+
+    PrintStream printStream =
+        new PrintStream(output);
+
+    TruffulaPrinter printer =
+        new TruffulaPrinter(options, printStream);
+
+    printer.printTree();
+
+    String result = output.toString();
+
+    assertTrue(result.contains(
+        ConsoleColor.WHITE + "root/"
+    ));
+
+    assertTrue(result.contains(
+        ConsoleColor.PURPLE + "   file.txt"
+    ));
+}
+
+@Test
+void testSameNameDifferentCase(@TempDir File tempDir) throws IOException {
+    File root = new File(tempDir, "root");
+    root.mkdir();
+
+    new File(root, "meomeo.txt").createNewFile();
+    new File(root, "Meomeo.txt").createNewFile();
+
+    TruffulaOptions options =
+        new TruffulaOptions(root, false, false);
+
+    ByteArrayOutputStream output =
+        new ByteArrayOutputStream();
+
+    PrintStream printStream =
+        new PrintStream(output);
+
+    TruffulaPrinter printer =
+        new TruffulaPrinter(options, printStream);
+
+    printer.printTree();
+
+    String result = output.toString();
+
+    assertTrue(
+        result.indexOf("Meomeo.txt") < result.indexOf("meomeo.txt")
+    );
+}
+
+@Test
+void testThreeColors(@TempDir File tempDir) throws IOException {
+    // Create root folder
+    File root = new File(tempDir, "root");
+    root.mkdir();
+
+    // Create folder inside root
+    File folder = new File(root, "folder");
+    folder.mkdir();
+
+    // Create another folder inside folder
+    File subfolder = new File(folder, "subfolder");
+    subfolder.mkdir();
+
+    // Use color
+    TruffulaOptions options =
+        new TruffulaOptions(root, false, true);
+
+    ByteArrayOutputStream output =
+        new ByteArrayOutputStream();
+
+    PrintStream printStream =
+        new PrintStream(output);
+
+    TruffulaPrinter printer =
+        new TruffulaPrinter(options, printStream);
+
+    // Print tree
+    printer.printTree();
+
+    String result = output.toString();
+
+    // Check the 3 colors
+    assertTrue(result.contains(ConsoleColor.WHITE + "root/"));
+    assertTrue(result.contains(ConsoleColor.PURPLE + "   folder/"));
+    assertTrue(result.contains(ConsoleColor.YELLOW + "      subfolder/"));
+}
+
+@Test
+void testAlphabeticalOrder(@TempDir File tempDir) throws IOException {
+    File root = new File(tempDir, "root");
+    root.mkdir();
+
+    new File(root, "matcha.txt").createNewFile();
+    new File(root, "cat.txt").createNewFile();
+    new File(root, "dolphin.txt").createNewFile();
+
+    TruffulaOptions options =
+        new TruffulaOptions(root, false, false);
+
+    ByteArrayOutputStream output =
+        new ByteArrayOutputStream();
+
+    PrintStream printStream =
+        new PrintStream(output);
+
+    TruffulaPrinter printer =
+        new TruffulaPrinter(options, printStream);
+
+    printer.printTree();
+
+    String result = output.toString();
+
+    int cat = result.indexOf("cat.txt");
+    int dolphin = result.indexOf("dolphin.txt");
+    int matcha = result.indexOf("matcha.txt");
+
+    // Check alphabetical order
+    assertTrue(cat < dolphin);
+    assertTrue(dolphin < matcha);
+}
 }
