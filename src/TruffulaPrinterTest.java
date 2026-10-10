@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class TruffulaPrinterTest {
 
@@ -145,8 +146,166 @@ public class TruffulaPrinterTest {
         expected.append(yellow).append("      notes.txt").append(nl).append(reset);
         expected.append(yellow).append("      README.md").append(nl).append(reset);
         expected.append(purple).append("   zebra.txt").append(nl).append(reset);
+    }
 
         // Assert that the output matches the expected output exactly
+    //     assertEquals(expected.toString(), output);
+    // }
+
+//     private static String runPrinter(File root, boolean showHidden, boolean useColor) {
+//     ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//     PrintStream printStream = new PrintStream(baos);
+//     new TruffulaPrinter(new TruffulaOptions(root, showHidden, useColor), printStream).printTree();
+//     return baos.toString();
+// }
+    @Test
+    public void testHiddenFilesAreNotShownWhenShowHiddenIsFalse(@TempDir File tempDir) throws IOException {
+        // Arrange: A folder with one visible file and one hidden file, hidden files turned off
+        File root = new File(tempDir, "root");
+        assertTrue(root.mkdir());
+        new File(root, "visible.txt").createNewFile();
+        createHiddenFile(root, ".secret.txt");
+
+        TruffulaOptions options = new TruffulaOptions(root, false, false);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        // Act: Print the tree
+        printer.printTree();
+        String output = baos.toString();
+
+        // Assert: The visible file is printed and the hidden file is not
+        assertTrue(output.contains("visible.txt"));
+        assertFalse(output.contains(".secret.txt"));
+    }
+
+    @Test
+    public void testHiddenFilesAreShownWhenShowHiddenIsTrue(@TempDir File tempDir) throws IOException {
+        // Arrange: The same folder, but hidden files turned on
+        File root = new File(tempDir, "root");
+        assertTrue(root.mkdir());
+        new File(root, "visible.txt").createNewFile();
+        createHiddenFile(root, ".secret.txt");
+
+        TruffulaOptions options = new TruffulaOptions(root, true, false);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        // Act: Print the tree
+        printer.printTree();
+        String output = baos.toString();
+
+        // Assert: Both the visible and hidden files are printed
+        assertTrue(output.contains("visible.txt"));
+        assertTrue(output.contains(".secret.txt"));
+    }
+
+    @Test
+    public void testContentsOfHiddenFolderAreNotShown(@TempDir File tempDir) throws IOException {
+        // Arrange: A hidden folder containing a normal file, hidden files turned off
+        File root = new File(tempDir, "root");
+        assertTrue(root.mkdir());
+        File hiddenDir = new File(root, ".hiddenDir");
+        assertTrue(hiddenDir.mkdir());
+        new File(hiddenDir, "inside.txt").createNewFile();
+
+        TruffulaOptions options = new TruffulaOptions(root, false, false);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        // Act: Print the tree
+        printer.printTree();
+        String output = baos.toString();
+
+        // Assert: Neither the hidden folder nor anything inside it is printed
+        assertFalse(output.contains(".hiddenDir"));
+        assertFalse(output.contains("inside.txt"));
+    }
+
+    // tests for color
+
+        @Test
+    public void testColorsCycleByDepth(@TempDir File tempDir) throws IOException {
+        // Arrange: One entry per folder so alphabetical order doesn't matter
+        // root (white) -> a (purple) -> b (yellow) -> c (white) -> file.txt (purple)
+        File root = new File(tempDir, "root");
+        File c = new File(root, "a/b/c");
+        assertTrue(c.mkdirs());
+        new File(c, "file.txt").createNewFile();
+
+        TruffulaOptions options = new TruffulaOptions(root, false, true);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        String nl = System.lineSeparator();
+        ConsoleColor reset = ConsoleColor.RESET;
+        StringBuilder expected = new StringBuilder();
+        expected.append(ConsoleColor.WHITE).append("root/").append(nl).append(reset);
+        expected.append(ConsoleColor.PURPLE).append("   a/").append(nl).append(reset);
+        expected.append(ConsoleColor.YELLOW).append("      b/").append(nl).append(reset);
+        expected.append(ConsoleColor.WHITE).append("         c/").append(nl).append(reset);
+        expected.append(ConsoleColor.PURPLE).append("            file.txt").append(nl).append(reset);
+
+        // Act: Print the tree
+        printer.printTree();
+        String output = baos.toString();
+
+        // Assert: Each depth uses the next color, wrapping back to white
         assertEquals(expected.toString(), output);
     }
+
+    @Test
+    public void testNoColorPrintsEverythingInWhite(@TempDir File tempDir) throws IOException {
+        // Arrange: A nested folder, with color turned off
+        File root = new File(tempDir, "root");
+        File sub = new File(root, "sub");
+        assertTrue(sub.mkdirs());
+        new File(sub, "file.txt").createNewFile();
+
+        TruffulaOptions options = new TruffulaOptions(root, false, false);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        // Act: Print the tree
+        printer.printTree();
+        String output = baos.toString();
+
+        // Assert: Only white is used, never purple or yellow
+        assertTrue(output.contains(ConsoleColor.WHITE.toString()));
+        assertFalse(output.contains(ConsoleColor.PURPLE.toString()));
+        assertFalse(output.contains(ConsoleColor.YELLOW.toString()));
+    }
+        @Test
+    public void testFilesAreSortedAlphabeticallyIgnoringCase(@TempDir File tempDir) throws IOException {
+        // Arrange: Files created out of order, with mixed upper and lower case, color turned off
+        File root = new File(tempDir, "root");
+        assertTrue(root.mkdir());
+        new File(root, "zebra.txt").createNewFile();
+        new File(root, "Apple.txt").createNewFile();
+        new File(root, "banana.txt").createNewFile();
+
+        TruffulaOptions options = new TruffulaOptions(root, false, false);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        // Act: Print the tree
+        printer.printTree();
+        String output = baos.toString();
+
+        // Assert: Apple comes before banana, which comes before zebra
+        int apple = output.indexOf("Apple.txt");
+        int banana = output.indexOf("banana.txt");
+        int zebra = output.indexOf("zebra.txt");
+        assertTrue(apple >= 0);
+        assertTrue(apple < banana);
+        assertTrue(banana < zebra);
+    }
 }
+
+

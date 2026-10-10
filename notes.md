@@ -4,13 +4,43 @@ As part of Wave 0, please fill out notes for each of the below files. They are i
 PLEASE MAKE FREQUENT COMMITS AS YOU FILL OUT THIS FILE.
 
 ## App.java
+- Holds main, the entry point when run from the command line (java src/App.java -nc -h src).
+- `main` needs to do three things: build a `TruffulaOptions` from `args`, build a TruffulaPrinter from the options, and call `printTree()`.
+- The Javadoc describes the arguments: optional flags `-h` and `-nc`, then a required path.
+- main declares `throws Exception` because `TruffulaOptions` can throw `FileNotFoundException`.
 
 ## ConsoleColor.java
+ enum: a fixed set of named constants. You can't create new ones, and you compare them with `==`.
+- Each constant carries a String ANSI escape code, passed to the private constructor ->`RED("\033[0;31m")`.
+- `getCode()` returns the code, and `toString()` is overridden to return the code too. So `"" + ConsoleColor.RED` produces the escape sequence directlyy
+- `RESET` isn't a real color. It restores the terminal's default color
+- `ConsoleColor.values()` returns every constant as an array.
 
 ## ColorPrinter.java / ColorPrinterTest.java
+Wraps a PrintStream and remembers a currentColor -> (default `WHITE`).
+- println(...) variants all into print(String message, boolean reset), and println just appends System.lineSeparator().
+- The existing test captures output with a `ByteArrayOutputStream` wrapped in a `PrintStream`, then compares the string exactly. Expected output ->  `COLOR + message + newline + RESET` so the reset comes after the newline.
 
 ## TruffulaOptions.java / TruffulaOptionsTest.java
+- Parsing rules from the Javadoc:
+  - The last arg is always the path.
+  - `-h` sets showHidden to true (default false)
+  - `-nc` sets useColor to false (default true)
+  - Flag order doesn't matter, and either or both may be absent.
+  - Unknown flags or a missing path throw `IllegalArgumentException`.
+  - A path that doesn't exist, or is a file rather than a directory, throws `FileNotFoundException`
+- `java.io.File` -> it represents a path, which may or may not exist on disk.
+  - `exists()` checks that the path is real
+  - `isDirectory()` checks it's a folder
+  - `getName()` returns the last part of the path
+  - `listFiles()` returns the children, or `null` if it isn't a readable directory
+- The existing test uses `@TempDir`, which is JUnit's way of giving each test a throwaway folder that's deleted later
 
 ## TruffulaPrinter.java / TruffulaPrinterTest.java
-
+Fields: `options`, `colorSequence` and `out` (a `ColorPrinter`).
+- Four constructors chain together with `this(...)`, and the last one does the real work T
+- Must print through `out.println`, not `System.out.println`.
 ## AlphabeticalFileSorter.java
+ Static utility: sort(File[] files) sorts by getName(), ignoring case, and returns the array.
+- Uses a short inline comparator, with `Arrays.sort`. googled -> but the idea is "compare two files by lowercase-insensitive name."
+- It sorts in place and also returns the array.
