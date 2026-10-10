@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.PrintStream;
 import java.util.List;
 
@@ -111,8 +112,33 @@ public class TruffulaPrinter {
     // - For Wave 6: Use AlphabeticalFileSorter
     // DO NOT USE SYSTEM.OUT.PRINTLN
     // USE out.println instead (will use your ColorPrinter)
+    // File root= new File(".");
+    File root= options.getRoot();
+    // File[] rootChildren = root.listFiles();
+    // System.out.println(rootChildren);
+    printTree(root, 0);
+    // out.println("My options are: " + options);
+  }
+  private void printTree(File root, int indent){
+    if(root==null)return;
+    
+    String indentation="";
+    for(int i=0; i<indent; i++){
+      indentation +=" ";
+    }
+    String slash = "";
+    if(root.isDirectory()) slash="/";
 
-    out.println("printTree was called!");
-    out.println("My options are: " + options);
+   if (options.isUseColor()){
+      out.setCurrentColor(colorSequence.get((indent/3)%colorSequence.size()));
+    }
+    out.println(indentation+root.getName()+slash);
+
+    if(root.listFiles()==null) return;
+    File[] rootChildren =AlphabeticalFileSorter.sort(root.listFiles());
+    for (File child : rootChildren) {
+      if(child.isHidden()&&!options.isShowHidden())continue;
+      printTree(child, indent+3);
+    }
   }
 }
