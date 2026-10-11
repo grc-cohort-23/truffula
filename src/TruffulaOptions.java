@@ -113,10 +113,10 @@ public class TruffulaOptions  {
     boolean hiddenBoolean = false;
 
     for(int i = 0; i < args.length; i++){
-      if(args[i] == "-nc"){
+      if(args[i].equals("-nc")){
         colorBoolean = false;
       }
-      else if(args[i] == "-h"){
+      else if(args[i].equals("-h")){
         hiddenBoolean = true;
       }
     }
