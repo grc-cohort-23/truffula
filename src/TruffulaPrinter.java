@@ -1,5 +1,6 @@
 import java.io.PrintStream;
 import java.util.List;
+import java.io.File;
 
 /**
  * TruffulaPrinter is responsible for printing a directory tree structure
@@ -103,6 +104,8 @@ public class TruffulaPrinter {
    *    zebra.txt
    */
   public void printTree() {
+    printFile(options.getRoot(), 0);
+
     // TODO: Implement this!
     // REQUIRED: ONLY use java.io, DO NOT use java.nio
     
@@ -111,8 +114,41 @@ public class TruffulaPrinter {
     // - For Wave 6: Use AlphabeticalFileSorter
     // DO NOT USE SYSTEM.OUT.PRINTLN
     // USE out.println instead (will use your ColorPrinter)
+  }
 
-    out.println("printTree was called!");
-    out.println("My options are: " + options);
+  private void printFile(File file, int depth) {
+    if (file.isHidden() && !options.isShowHidden()) {
+      return;
+    }
+
+    String indent = "   ".repeat(depth);
+    ConsoleColor color = ConsoleColor.WHITE;
+
+    if (options.isUseColor()) {
+      int colorIndex = depth % colorSequence.size();
+      color = colorSequence.get(colorIndex);
+    }
+
+    out.setCurrentColor(color);
+
+    String name = file.getName();
+
+    if (file.isDirectory()) {
+      name += "/";
+    }
+    
+    out.println(indent + name);
+
+    if (file.isDirectory()) {
+      File[] children = file.listFiles();
+
+      if (children != null) {
+        AlphabeticalFileSorter.sort(children);
+
+        for (File child : children) {
+          printFile(child, depth + 1);
+        }
+      }
+    }
   }
 }

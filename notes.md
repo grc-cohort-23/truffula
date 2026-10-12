@@ -4,13 +4,32 @@ As part of Wave 0, please fill out notes for each of the below files. They are i
 PLEASE MAKE FREQUENT COMMITS AS YOU FILL OUT THIS FILE.
 
 ## App.java
+* There's a main method and notes on what it should implement.
+* Options: Hidden files shown? Color? Which root directory?
 
 ## ConsoleColor.java
+* Enum. You remember enums.
+* Uses ANSI codes. I am not familiar with ANSI.
+* Supported colors: black, red, green, yellow, blue, purple, cyan, and white.
+* There is a reset option. This is to change the colors to default.
 
 ## ColorPrinter.java / ColorPrinterTest.java
+* As the name suggests, it's meant to print lines in color.
+* Can check current color, set a new color, reset the color used, and various printing functions.
+* One of the standard print methods is unfinished.
+* Looks like the color will reset unless you tell it not to.
 
 ## TruffulaOptions.java / TruffulaOptionsTest.java
+* This is really similar to App.java.
+* I expect a lot of the work on App.java will be implementing these methods.
+* First TruffulaOptions has a TODO on it.
 
 ## TruffulaPrinter.java / TruffulaPrinterTest.java
+* This ugly mother prints the directory tree, calling upon TruffulaOptions to figure out how.
+* Makes a color printer to output.
+* Many, many constructors.
+* printTree() is TODOed.
 
 ## AlphabeticalFileSorter.java
+* As name suggests, lets the files and directories be sorted in alphabetical order.
+* We don't need to understand this in its entirety yet. Uses lambdas.

@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class TruffulaPrinterTest {
 
@@ -148,5 +149,99 @@ public class TruffulaPrinterTest {
 
         // Assert that the output matches the expected output exactly
         assertEquals(expected.toString(), output);
+    }
+
+    @Test
+    public void testBasicTree(@TempDir File tempDir) throws IOException {
+        File folder = new File(tempDir, "myFolder");
+        folder.mkdir();
+
+        File file = new File(folder, "SelfInsertFanfiction.txt");
+        file.createNewFile();
+
+        TruffulaOptions options = new TruffulaOptions(folder, true, false);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        printer.printTree();
+
+        String output = baos.toString();
+        String nl = System.lineSeparator();
+        String expected = ConsoleColor.WHITE.getCode() + "myFolder/" + nl + ConsoleColor.RESET.getCode() + 
+            ConsoleColor.WHITE.getCode() + "   SelfInsertFanfiction.txt" + nl + ConsoleColor.RESET.getCode();
+
+        assertEquals(expected, output);
+    }
+
+    @Test
+    public void testHiddenFilesExcluded(@TempDir File tempDir) throws IOException {
+        File visible = new File(tempDir, "visible.txt");
+        visible.createNewFile();
+        File invisible = createHiddenFile(tempDir, ".invisible.txt");
+
+        TruffulaOptions options = new TruffulaOptions(tempDir, false, false);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        printer.printTree();
+
+        String output = baos.toString();
+        
+        assertTrue(output.contains("visible.txt"));
+        assertFalse(output.contains(".invisible.txt"));
+    }
+
+    @Test
+    public void testHiddenFilesIncluded(@TempDir File tempDir) throws IOException {
+        File visible = new File(tempDir, "visible.txt");
+        visible.createNewFile();
+        File invisible = createHiddenFile(tempDir, ".invisible.txt");
+
+        TruffulaOptions options = new TruffulaOptions(tempDir, true, false);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        printer.printTree();
+
+        String output = baos.toString();
+        
+        assertTrue(output.contains("visible.txt"));
+        assertTrue(output.contains(".invisible.txt"));
+    }
+
+    @Test
+    public void testColorSequence(@TempDir File tempDir) throws IOException {
+        File folder = new File(tempDir, "FoldingFolder");
+        folder.mkdir();
+
+        File subfolder = new File(folder, "FoldedFolder");
+        subfolder.mkdir();
+
+        File file = new File(subfolder, "NotPornography.txt");
+        file.createNewFile();
+
+        TruffulaOptions options = new TruffulaOptions(folder, false, true);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        printer.printTree();
+
+        String output = baos.toString();
+
+        assertTrue(output.contains(ConsoleColor.WHITE.getCode() + "FoldingFolder/"));
+        assertTrue(output.contains(ConsoleColor.PURPLE.getCode() + "   FoldedFolder/"));
+        assertTrue(output.contains(ConsoleColor.YELLOW.getCode() + "      NotPornography.txt"));
     }
 }
