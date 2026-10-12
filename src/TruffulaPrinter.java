@@ -122,6 +122,14 @@ public class TruffulaPrinter {
     }
 
     String indent = "   ".repeat(depth);
+    ConsoleColor color = ConsoleColor.WHITE;
+
+    if (options.isUseColor()) {
+      int colorIndex = depth % colorSequence.size();
+      color = colorSequence.get(colorIndex);
+    }
+
+    out.setCurrentColor(color);
     out.println(indent + file.getName());
 
     if (file.isDirectory()) {

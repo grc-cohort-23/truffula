@@ -152,7 +152,7 @@ public class TruffulaPrinterTest {
     }
 
     @Test
-    void testBasicTree(@TempDir File tempDir) throws IOException {
+    public void testBasicTree(@TempDir File tempDir) throws IOException {
         File folder = new File(tempDir, "myFolder");
         folder.mkdir();
 
@@ -216,5 +216,32 @@ public class TruffulaPrinterTest {
         
         assertTrue(output.contains("visible.txt"));
         assertTrue(output.contains(".invisible.txt"));
+    }
+
+    @Test
+    public void testColorSequence(@TempDir File tempDir) throws IOException {
+        File folder = new File(tempDir, "FoldingFolder");
+        folder.mkdir();
+
+        File subfolder = new File(folder, "FoldedFolder");
+        subfolder.mkdir();
+
+        File file = new File(subfolder, "NotPornography.txt");
+        file.createNewFile();
+
+        TruffulaOptions options = new TruffulaOptions(folder, false, true);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        printer.printTree();
+
+        String output = baos.toString();
+
+        assertTrue(output.contains(ConsoleColor.WHITE.getCode() + "FoldingFolder"));
+        assertTrue(output.contains(ConsoleColor.PURPLE.getCode() + "   FoldedFolder"));
+        assertTrue(output.contains(ConsoleColor.YELLOW.getCode() + "      NotPornography.txt"));
     }
 }
