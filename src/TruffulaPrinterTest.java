@@ -170,7 +170,7 @@ public class TruffulaPrinterTest {
 
         String output = baos.toString();
         String nl = System.lineSeparator();
-        String expected = ConsoleColor.WHITE.getCode() + "myFolder" + nl + ConsoleColor.RESET.getCode() + 
+        String expected = ConsoleColor.WHITE.getCode() + "myFolder/" + nl + ConsoleColor.RESET.getCode() + 
             ConsoleColor.WHITE.getCode() + "   SelfInsertFanfiction.txt" + nl + ConsoleColor.RESET.getCode();
 
         assertEquals(expected, output);
@@ -240,8 +240,8 @@ public class TruffulaPrinterTest {
 
         String output = baos.toString();
 
-        assertTrue(output.contains(ConsoleColor.WHITE.getCode() + "FoldingFolder"));
-        assertTrue(output.contains(ConsoleColor.PURPLE.getCode() + "   FoldedFolder"));
+        assertTrue(output.contains(ConsoleColor.WHITE.getCode() + "FoldingFolder/"));
+        assertTrue(output.contains(ConsoleColor.PURPLE.getCode() + "   FoldedFolder/"));
         assertTrue(output.contains(ConsoleColor.YELLOW.getCode() + "      NotPornography.txt"));
     }
 }

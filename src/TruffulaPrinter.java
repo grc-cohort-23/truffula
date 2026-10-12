@@ -130,13 +130,24 @@ public class TruffulaPrinter {
     }
 
     out.setCurrentColor(color);
-    out.println(indent + file.getName());
+
+    String name = file.getName();
+
+    if (file.isDirectory()) {
+      name += "/";
+    }
+    
+    out.println(indent + name);
 
     if (file.isDirectory()) {
       File[] children = file.listFiles();
 
-      for (File child : children) {
-        printFile(child, depth + 1);
+      if (children != null) {
+        AlphabeticalFileSorter.sort(children);
+
+        for (File child : children) {
+          printFile(child, depth + 1);
+        }
       }
     }
   }
