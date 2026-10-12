@@ -117,6 +117,10 @@ public class TruffulaPrinter {
   }
 
   private void printFile(File file, int depth) {
+    if (file.isHidden() && !options.isShowHidden()) {
+      return;
+    }
+
     String indent = "   ".repeat(depth);
     out.println(indent + file.getName());
 

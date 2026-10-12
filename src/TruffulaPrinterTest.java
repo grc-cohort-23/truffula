@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class TruffulaPrinterTest {
 
@@ -173,5 +174,47 @@ public class TruffulaPrinterTest {
             ConsoleColor.WHITE.getCode() + "   SelfInsertFanfiction.txt" + nl + ConsoleColor.RESET.getCode();
 
         assertEquals(expected, output);
+    }
+
+    @Test
+    public void testHiddenFilesExcluded(@TempDir File tempDir) throws IOException {
+        File visible = new File(tempDir, "visible.txt");
+        visible.createNewFile();
+        File invisible = createHiddenFile(tempDir, ".invisible.txt");
+
+        TruffulaOptions options = new TruffulaOptions(tempDir, false, false);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        printer.printTree();
+
+        String output = baos.toString();
+        
+        assertTrue(output.contains("visible.txt"));
+        assertFalse(output.contains(".invisible.txt"));
+    }
+
+    @Test
+    public void testHiddenFilesIncluded(@TempDir File tempDir) throws IOException {
+        File visible = new File(tempDir, "visible.txt");
+        visible.createNewFile();
+        File invisible = createHiddenFile(tempDir, ".invisible.txt");
+
+        TruffulaOptions options = new TruffulaOptions(tempDir, true, false);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(baos);
+
+        TruffulaPrinter printer = new TruffulaPrinter(options, printStream);
+
+        printer.printTree();
+
+        String output = baos.toString();
+        
+        assertTrue(output.contains("visible.txt"));
+        assertTrue(output.contains(".invisible.txt"));
     }
 }
