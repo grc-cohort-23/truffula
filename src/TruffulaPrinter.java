@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.PrintStream;
 import java.util.List;
 
@@ -112,7 +113,25 @@ public class TruffulaPrinter {
     // DO NOT USE SYSTEM.OUT.PRINTLN
     // USE out.println instead (will use your ColorPrinter)
 
-    out.println("printTree was called!");
     out.println("My options are: " + options);
+    File location = options.getRoot();
+    printRecursive(location, 0);
+  }
+
+  private void printRecursive(File directory, int depth){
+    //Write name, next line for children
+    //Indent per depth level
+    //Write name before looking at children
+    if(directory.isHidden() && !options.isShowHidden()) return;
+    String depthDent = "   ".repeat(depth);
+    ConsoleColor color = ConsoleColor.WHITE;
+    if(options.isUseColor()) color = DEFAULT_COLOR_SEQUENCE.get(Math.floorMod(depth - 1, DEFAULT_COLOR_SEQUENCE.size()));
+    out.setCurrentColor(color);
+    out.println(depthDent + directory.getName());
+    if(directory.isFile()) return;
+    File[] sorted = AlphabeticalFileSorter.sort(directory.listFiles());
+    for(File child : sorted){ 
+      printRecursive(child, depth + 1);
+    }
   }
 }
