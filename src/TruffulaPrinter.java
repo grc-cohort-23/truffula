@@ -1,5 +1,6 @@
 import java.io.PrintStream;
 import java.util.List;
+import java.io.File;
 
 /**
  * TruffulaPrinter is responsible for printing a directory tree structure
@@ -112,7 +113,48 @@ public class TruffulaPrinter {
     // DO NOT USE SYSTEM.OUT.PRINTLN
     // USE out.println instead (will use your ColorPrinter)
 
-    out.println("printTree was called!");
-    out.println("My options are: " + options);
+    File root = options.getRoot();
+
+    printWithColor(root.getName() + "/", 0);
+
+    printFiles(root, 1);
+  }
+
+  private void printWithColor(String message, int level) {
+      if (options.isUseColor()) {
+          ConsoleColor color = colorSequence.get(level % colorSequence.size());
+          out.setCurrentColor(color);
+      } else {
+          out.setCurrentColor(ConsoleColor.WHITE);
+      }
+
+      out.println(message);
+  }
+
+  private void printFiles(File folder, int level) {
+    File[] files = folder.listFiles();
+
+    if (files == null) {
+        return;
+    }
+
+    // Sort files alphabetically
+    files = AlphabeticalFileSorter.sort(files);
+
+    for (File file : files) {
+
+        if (!options.isShowHidden() && file.isHidden()) {
+            continue;
+        }
+
+        String spaces = "   ".repeat(level);
+
+        if (file.isDirectory()) {
+            printWithColor(spaces + file.getName() + "/", level);
+            printFiles(file, level + 1);
+        } else {
+            printWithColor(spaces + file.getName(), level);
+        }
+    }
   }
 }

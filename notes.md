@@ -4,13 +4,31 @@ As part of Wave 0, please fill out notes for each of the below files. They are i
 PLEASE MAKE FREQUENT COMMITS AS YOU FILL OUT THIS FILE.
 
 ## App.java
+- App.java is the starting point of the program.
+- The main() method runs when the program starts.
+- The program displays files and folders in a tree structure.
+- The main() method is not implemented yet.
 
 ## ConsoleColor.java
+- This file stores different text colors.
+- It uses codes to show colors in the terminal.
+- getCode() returns the color code.
 
 ## ColorPrinter.java / ColorPrinterTest.java
+- ColorPrinter prints colored text.
+- We can choose different colors.
+- ColorPrinterTest checks if the code works correctly.
 
 ## TruffulaOptions.java / TruffulaOptionsTest.java
+- TruffulaOptions stores the program settings.
+- It checks which folder the user wants to open.
+- TruffulaOptionsTest checks if the options work correctly.
 
 ## TruffulaPrinter.java / TruffulaPrinterTest.java
+- TruffulaPrinter prints files and folders in a tree.
+- It uses spaces to show folder levels.
+- TruffulaPrinterTest checks if the tree prints correctly.
 
 ## AlphabeticalFileSorter.java
+- This file sorts files by their names.
+- It sorts files in alphabetical order.
