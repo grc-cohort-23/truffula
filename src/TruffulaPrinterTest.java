@@ -230,4 +230,54 @@ public class TruffulaPrinterTest {
         String nl = System.lineSeparator();
         assertEquals("myFolder/" + nl + "   sub/" + nl, stripColor(baos.toString()));
     }
+    @Test
+    public void testPrintTree_ColorsCycleByDepth(@TempDir File tempDir) throws IOException {
+        // myFolder/        white
+        //    a/            purple
+        //       b/         yellow
+        //          c.txt   white (wraps)
+        File myFolder = new File(tempDir, "myFolder");
+        assertTrue(myFolder.mkdir());
+        File a = new File(myFolder, "a");
+        assertTrue(a.mkdir());
+        File b = new File(a, "b");
+        assertTrue(b.mkdir());
+        new File(b, "c.txt").createNewFile();
+
+        TruffulaOptions options = new TruffulaOptions(myFolder, false, true);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        TruffulaPrinter printer = new TruffulaPrinter(options, new PrintStream(baos));
+
+        printer.printTree();
+
+        String nl = System.lineSeparator();
+        ConsoleColor reset = ConsoleColor.RESET;
+        StringBuilder expected = new StringBuilder();
+        expected.append(ConsoleColor.WHITE).append("myFolder/").append(nl).append(reset);
+        expected.append(ConsoleColor.PURPLE).append("   a/").append(nl).append(reset);
+        expected.append(ConsoleColor.YELLOW).append("      b/").append(nl).append(reset);
+        expected.append(ConsoleColor.WHITE).append("         c.txt").append(nl).append(reset);
+
+        assertEquals(expected.toString(), baos.toString());
+    }
+
+    @Test
+    public void testPrintTree_NoColorAllWhite(@TempDir File tempDir) throws IOException {
+        File myFolder = new File(tempDir, "myFolder");
+        assertTrue(myFolder.mkdir());
+        new File(myFolder, "a.txt").createNewFile();
+
+        TruffulaOptions options = new TruffulaOptions(myFolder, false, false);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        TruffulaPrinter printer = new TruffulaPrinter(options, new PrintStream(baos));
+
+        printer.printTree();
+
+        String nl = System.lineSeparator();
+        ConsoleColor reset = ConsoleColor.RESET;
+        String expected =
+            "" + ConsoleColor.WHITE + "myFolder/" + nl + reset +
+            ConsoleColor.WHITE + "   a.txt" + nl + reset;
+        assertEquals(expected, baos.toString());
+    }
 }
