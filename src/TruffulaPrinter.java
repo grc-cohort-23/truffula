@@ -111,6 +111,12 @@ public class TruffulaPrinter {
   private void printTree(File file, int depth) {
       String indent = "   ".repeat(depth);
 
+      if (options.isUseColor()) {
+        out.setCurrentColor(colorSequence.get(depth % colorSequence.size()));
+      } else {
+          out.setCurrentColor(ConsoleColor.WHITE);
+      }
+
       if (file.isDirectory()) {
           out.println(indent + file.getName() + "/");
           File[] children = file.listFiles();
