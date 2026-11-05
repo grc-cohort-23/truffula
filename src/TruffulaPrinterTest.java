@@ -149,4 +149,135 @@ public class TruffulaPrinterTest {
         // Assert that the output matches the expected output exactly
         assertEquals(expected.toString(), output);
     }
+    // Removes ANSI color codes so tests can ignore color
+    private static String stripColor(String s) {
+        return s.replaceAll("\u001B\\[[;\\d]*m", "");
+    }
+
+    @Test
+    public void testPrintTree_NestedNoColorNoOrder(@TempDir File tempDir) throws IOException {
+        // myFolder/
+        //    .hidden.txt   (should NOT print)
+        //    sub/
+        //       b.txt
+        File myFolder = new File(tempDir, "myFolder");
+        assertTrue(myFolder.mkdir());
+        File sub = new File(myFolder, "sub");
+        assertTrue(sub.mkdir());
+        new File(sub, "b.txt").createNewFile();
+        createHiddenFile(myFolder, ".hidden.txt");
+
+        TruffulaOptions options = new TruffulaOptions(myFolder, false, false);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        TruffulaPrinter printer = new TruffulaPrinter(options, new PrintStream(baos));
+
+        printer.printTree();
+
+        String nl = System.lineSeparator();
+        String expected =
+            "myFolder/" + nl +
+            "   sub/" + nl +
+            "      b.txt" + nl;
+        assertEquals(expected, stripColor(baos.toString()));
+    }
+
+    @Test
+    public void testPrintTree_ShowsHiddenWhenEnabled(@TempDir File tempDir) throws IOException {
+        File myFolder = new File(tempDir, "myFolder");
+        assertTrue(myFolder.mkdir());
+        createHiddenFile(myFolder, ".hidden.txt");
+
+        TruffulaOptions options = new TruffulaOptions(myFolder, true, false);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        TruffulaPrinter printer = new TruffulaPrinter(options, new PrintStream(baos));
+
+        printer.printTree();
+
+        String nl = System.lineSeparator();
+        assertEquals("myFolder/" + nl + "   .hidden.txt" + nl, stripColor(baos.toString()));
+    }
+
+    @Test
+    public void testPrintTree_EmptyFolder(@TempDir File tempDir) throws IOException {
+        File myFolder = new File(tempDir, "myFolder");
+        assertTrue(myFolder.mkdir());
+
+        TruffulaOptions options = new TruffulaOptions(myFolder, false, false);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        TruffulaPrinter printer = new TruffulaPrinter(options, new PrintStream(baos));
+
+        printer.printTree();
+
+        assertEquals("myFolder/" + System.lineSeparator(), stripColor(baos.toString()));
+    }
+    @Test
+    public void testPrintTree_HidesNestedHiddenFile(@TempDir File tempDir) throws IOException {
+        // myFolder/
+        //    sub/
+        //       .secret.txt  (should NOT print)
+        File myFolder = new File(tempDir, "myFolder");
+        assertTrue(myFolder.mkdir());
+        File sub = new File(myFolder, "sub");
+        assertTrue(sub.mkdir());
+        createHiddenFile(sub, ".secret.txt");
+
+        TruffulaOptions options = new TruffulaOptions(myFolder, false, false);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        TruffulaPrinter printer = new TruffulaPrinter(options, new PrintStream(baos));
+
+        printer.printTree();
+
+        String nl = System.lineSeparator();
+        assertEquals("myFolder/" + nl + "   sub/" + nl, stripColor(baos.toString()));
+    }
+    @Test
+    public void testPrintTree_ColorsCycleByDepth(@TempDir File tempDir) throws IOException {
+        // myFolder/        white
+        //    a/            purple
+        //       b/         yellow
+        //          c.txt   white (wraps)
+        File myFolder = new File(tempDir, "myFolder");
+        assertTrue(myFolder.mkdir());
+        File a = new File(myFolder, "a");
+        assertTrue(a.mkdir());
+        File b = new File(a, "b");
+        assertTrue(b.mkdir());
+        new File(b, "c.txt").createNewFile();
+
+        TruffulaOptions options = new TruffulaOptions(myFolder, false, true);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        TruffulaPrinter printer = new TruffulaPrinter(options, new PrintStream(baos));
+
+        printer.printTree();
+
+        String nl = System.lineSeparator();
+        ConsoleColor reset = ConsoleColor.RESET;
+        StringBuilder expected = new StringBuilder();
+        expected.append(ConsoleColor.WHITE).append("myFolder/").append(nl).append(reset);
+        expected.append(ConsoleColor.PURPLE).append("   a/").append(nl).append(reset);
+        expected.append(ConsoleColor.YELLOW).append("      b/").append(nl).append(reset);
+        expected.append(ConsoleColor.WHITE).append("         c.txt").append(nl).append(reset);
+
+        assertEquals(expected.toString(), baos.toString());
+    }
+
+    @Test
+    public void testPrintTree_NoColorAllWhite(@TempDir File tempDir) throws IOException {
+        File myFolder = new File(tempDir, "myFolder");
+        assertTrue(myFolder.mkdir());
+        new File(myFolder, "a.txt").createNewFile();
+
+        TruffulaOptions options = new TruffulaOptions(myFolder, false, false);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        TruffulaPrinter printer = new TruffulaPrinter(options, new PrintStream(baos));
+
+        printer.printTree();
+
+        String nl = System.lineSeparator();
+        ConsoleColor reset = ConsoleColor.RESET;
+        String expected =
+            "" + ConsoleColor.WHITE + "myFolder/" + nl + reset +
+            ConsoleColor.WHITE + "   a.txt" + nl + reset;
+        assertEquals(expected, baos.toString());
+    }
 }
